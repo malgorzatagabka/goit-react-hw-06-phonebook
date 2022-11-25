@@ -1,23 +1,50 @@
-//import { nanoid } from "nanoid";
-// import { ContactListItem } from "./ContactListItem"
 import PropTypes from 'prop-types';
-import style from './Contacts.module.css'
+import style from './Contacts.module.css';
+import { getFilterValue, getContacts } from 'redux/selectors';
+import { useSelector, useDispatch } from 'react-redux';
+import { deleteContact } from 'redux/actions';
 
-export const ContactList = ({ contacts, toDelete }) => (
-  <ul className={style.contactsList}>
-    {contacts.map(({ id, name, number }) => (
-      <li className={style.contactsItem} key={id}>
-        <p>
-          {name}: {number}
-        </p>
-            <button className={style.contactBtn}type="submit" onClick={() => toDelete(id)}>
-          Delete
-        </button>
-      </li>
-    ))}
-  </ul>
-);
+export const ContactList = () => {
+  
+  const contacts = useSelector(getContacts);
+  const filterValue = useSelector(getFilterValue);
+  const dispatch = useDispatch();
 
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filterValue)
+  );
+
+  const toDelete = idToDelete => {
+    return dispatch(deleteContact(idToDelete));
+  };
+
+  return (
+    <div>
+      {filteredContacts.length > 0 ? (
+        <ul className={style.contactsList}>
+          
+          {filteredContacts.map(contact => {
+            
+            return (
+              <li className={style.contactsItem} key={contact.id}>
+                <span>{`${contact.name}: ${contact.number}`}</span>
+                <button
+                  type="button"
+                  className={style.contactBtn}
+                  onClick={() => toDelete(contact.id)}
+                >
+                  Delete
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div>There's no results</div>
+      )}
+    </div>
+  );
+};
 
 ContactList.propTypes = {
   contacts: PropTypes.arrayOf(
@@ -27,5 +54,4 @@ ContactList.propTypes = {
       number: PropTypes.string.isRequired,
     })
   ),
-  toDelete: PropTypes.func.isRequired,
 };
